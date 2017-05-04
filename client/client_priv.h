@@ -107,6 +107,7 @@ enum options_client
   OPT_CONNECTION_SERVER_ID,
   OPT_TLS_VERSION,
   OPT_SSL_MODE,
+  OPT_NET_READ_TIMEOUT, OPT_NET_WRITE_TIMEOUT,
   /* Add new option above this */
   OPT_MAX_CLIENT_OPTION
 };
