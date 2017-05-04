@@ -38,7 +38,7 @@
 ** 10 Jun 2003: SET NAMES and --no-set-names by Alexander Barkov
 */
 
-#define DUMP_VERSION "10.13"
+#define DUMP_VERSION "10.13-custom"
 
 #include <my_global.h>
 #include <my_sys.h>
@@ -139,6 +139,7 @@ static my_bool using_opt_enable_cleartext_plugin= 0;
 static uint opt_mysql_port= 0, opt_master_data;
 static uint opt_slave_data;
 static uint my_end_arg;
+static uint opt_net_read_timeout, opt_net_write_timeout;
 static char * opt_mysql_unix_port=0;
 static char *opt_bind_addr = NULL;
 static int   first_error=0;
@@ -425,6 +426,16 @@ static struct my_option my_long_options[] =
     &opt_net_buffer_length, &opt_net_buffer_length, 0,
     GET_ULONG, REQUIRED_ARG, 1024*1024L-1025, 4096, 16*1024L*1024L,
    MALLOC_OVERHEAD-1024, 1024, 0},
+  {"net_read_timeout", OPT_NET_READ_TIMEOUT,
+   "The number of seconds to wait for more data from a connection before aborting the read",
+    &opt_net_read_timeout, &opt_net_read_timeout, 0,
+    GET_UINT, REQUIRED_ARG, 30, 0, 0,
+    0, 0, 0},
+  {"net_write_timeout", OPT_NET_WRITE_TIMEOUT,
+   "The number of seconds to wait for a block to be written to a connection before aborting the write",
+    &opt_net_write_timeout, &opt_net_write_timeout, 0,
+    GET_UINT, REQUIRED_ARG, 60, 0, 0,
+    0, 0, 0},
   {"no-autocommit", OPT_AUTOCOMMIT,
    "Wrap tables with autocommit/commit statements.",
    &opt_autocommit, &opt_autocommit, 0, GET_BOOL, NO_ARG,
@@ -1669,6 +1680,12 @@ static int connect_to_db(char *host, char *user,char *passwd)
   if (using_opt_enable_cleartext_plugin)
     mysql_options(&mysql_connection, MYSQL_ENABLE_CLEARTEXT_PLUGIN,
                   (char *) &opt_enable_cleartext_plugin);
+
+  if (opt_net_read_timeout)
+    mysql_options(&mysql_connection, MYSQL_OPT_READ_TIMEOUT, &opt_net_read_timeout);
+
+  if (opt_net_write_timeout)
+    mysql_options(&mysql_connection, MYSQL_OPT_WRITE_TIMEOUT, &opt_net_write_timeout);
 
   mysql_options(&mysql_connection, MYSQL_OPT_CONNECT_ATTR_RESET, 0);
   mysql_options4(&mysql_connection, MYSQL_OPT_CONNECT_ATTR_ADD,
